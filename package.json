@@ -1,0 +1,39 @@
+{
+  "name": "SnakeAI-v2",
+  "version": "1.0.0",
+  "description": "Second version of SnakeAI, hopefully a better one.",
+  "main": "index.js",
+  "scripts": {
+    "live": "electron .",
+    "dist": "electron-builder"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Rainymy/SnakeAI-v2.git"
+  },
+  "keywords": [],
+  "author": {
+    "name": "Rainymy",
+    "email": "sstrike@yahoo.com"
+  },
+  "license": "MIT",
+  "build": {
+    "appId": "snake.id",
+    "win": {
+      "target": "nsis",
+      "icon": "icon/icon.ico"
+    }
+  },
+  "bugs": {
+    "url": "https://github.com/Rainymy/SnakeAI-v2/issues"
+  },
+  "homepage": "https://github.com/Rainymy/SnakeAI-v2#readme",
+  "dependencies": {
+    "electron-builder": "^22.8.0",
+    "electron-squirrel-startup": "^1.0.0"
+  },
+  "devDependencies": {
+    "electron": "^10.0.0",
+    "electron-is-dev": "^1.2.0"
+  }
+}

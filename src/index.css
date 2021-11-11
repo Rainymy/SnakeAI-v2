@@ -1,0 +1,91 @@
+/* General */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+  Roboto, Helvetica, Arial, sans-serif;
+  margin: auto;
+  min-width: 550px;
+  min-height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+.btn {
+  padding: 0.25em;
+  margin: 0 0.25em;
+}
+canvas {
+  background-color: grey;
+  margin: auto;
+}
+.bold {
+  font-weight: bold;
+}
+.score {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translate(-50%, 100%);
+  font-weight: bold;
+  width: 100%;
+  text-align: center;
+}
+.fps-count {
+  color: hsl(70, 50%, 70%);
+}
+
+.d-inline-block {
+  display: inline-block;
+}
+
+/* wrappers */
+.wrapper {
+  height: 100%;
+}
+.wrapper > div {
+  margin: 0 0.5em;
+  padding: 0.25em;
+  background-color: teal;
+  /* height: 100%; */
+}
+.game-board {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Board */
+.game-button-div {
+  padding: 0.5em;
+  background-color: darkseagreen;
+}
+.bottom {
+  background-color: darkseagreen;
+  padding: 0.5em;
+}
+.snake-status {
+  display: inline-block;
+  font-weight: bold;
+}
+.gameDiv {
+  width: 100%;
+  height: 100%;
+  margin: 0.5rem auto;
+  background-color: rgba(100, 149, 237, 0.25);
+}
+.gameDiv > div {
+  display: grid;
+  grid-row-gap: 50px;
+  grid-column-gap: 100px;
+  
+  grid-template-columns: repeat(auto-fit, 500px);
+  grid-auto-rows: 500px;
+  
+  justify-content: center;
+  padding: 25px 0;
+  background-color: cadetblue;
+}
+#gameOver {
+  font-weight: bold;
+}

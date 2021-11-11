@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta http-equiv="Content-Security-Policy" content="style-src 'self'">
+    <meta http-equiv="Content-Security-Policy"content="script-src 'self' 'unsafe-inline'">
+    <title>SnakeAI</title>
+    <link rel="shortcut icon" type="image/x-icon" href="./favicon.png">
+    <link rel="stylesheet" href="./src/index.css">
+  </head>
+  <body>
+    <div class="wrapper">
+      <div class="game-board">
+        <div class="game-button-div">
+          <div class="snake-status d-inline-block">
+            <span>Score:</span>
+            <span id="score">0</span>
+          </div>
+          <button id="trying" class="btn" >Restart</button>
+          <button class="btn" onclick="localStorage.clear();">
+            <b>Clear localStorage</b>
+          </button>
+          <div class="d-inline-block">
+            <input type="search">
+            <button id="changeTotal" class="btn bold">
+              Change
+            </button>
+          </div>
+        </div>
+        <div class="gameDiv">
+          <div>
+            <!-- Canvas dynamically adds here -->
+          </div>
+        </div>
+        <div class="bottom"></div>
+      </div>
+    </div>
+  </body>
+  <script defer type="text/javascript" charset="utf-8">
+    function load_modules() {
+      
+      let list = [
+        "./src/objects/boardManager.js",
+        "./src/objects/boardObject.js",
+        "./src/objects/snakeObject.js",
+        "./src/pathFinding.js",
+        "./src/renderer.js"
+      ]
+      
+      for (let link of list) {
+        let script = document.createElement("script");
+        script.src = link;
+        script.defer = true;
+        document.body.appendChild(script);
+      }
+      
+      return true;
+    };
+    load_modules();
+    
+    function startGame() {
+      manager.gameBoard = gameBoard = new boardProps(totalRowBoxes);
+      snakes = manager.populate(snakeObjects);
+      for (let snake of snakes) {
+        snake.spawnFood(manager.getRandomLocations(snake.bodies));
+        window.requestAnimationFrame(snake.startGame);
+      }
+      return;
+    }
+    
+    // init when page done loading
+    window.addEventListener("load", () => {
+      if (!localStorage.getItem("totalCanvas")) localStorage.setItem("totalCanvas", 1);
+      
+      manager = new boardManager();
+      manager.createGameGround(
+        document.querySelector(".gameDiv > div"), localStorage.totalCanvas
+      );
+      
+      document.body.addEventListener("keyup", function (event) {
+        if (event.key === "Escape") {
+          for (let snake of snakes) { snake.endGame(); }
+        }
+        else if (event.key === "§") aStar.search(currentSnake, manager.wholeMap);
+      });
+      
+      document.querySelector("#trying").addEventListener("click", function () {
+        manager.reInit(snakes, snakeObjects);
+        startGame();
+        manager.resetScore();
+      });
+      
+      document.querySelector("#changeTotal").addEventListener("click", function (event) {
+        let number = Math.floor(parseInt(event.target.previousElementSibling.value));
+        if (!Number.isNaN(number) && 1 <= number) {
+          localStorage.setItem("totalCanvas", number);
+          location.reload();
+        }
+      });
+      
+      startGame();
+    }, { once: true });
+  </script>
+</html>
