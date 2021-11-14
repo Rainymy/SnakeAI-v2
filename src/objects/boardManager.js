@@ -31,18 +31,17 @@ function boardManager() {
     // this.resetScore();
   }
   /*---------------------- Map ------------------------*/
-  this.getRandomAvailableLocation = function (bodies, size) {
+  this.getRandomAvailableLocation = function (bodies) {
     if (!this.isMapAvaible()) { this.wholeMap = this.getFullMap(); }
     let available = this.wholeMap.filter((item, i) => {
-      for (let body of bodies) {
+      return bodies.every((body) => {
         if (body.x !== item.x) { return true; } 
         else if (body.y !== item.y) { return true; } 
-        else if (body.x !== item.x && body.y !== item.y) { return false; }
-      }
+        else if (body.x === item.x && body.y === item.y) { return false; }
+        return true;
+      });
     });
-    return available.length 
-      ? available[Math.floor(Math.random() * available.length)]
-      : { x: -size, y: -size }
+    return available[Math.floor(Math.random() * available.length)];
   }
   this.isMapAvaible = function () {
     return this.wholeMap && Array.isArray(this.wholeMap) ? true: false;

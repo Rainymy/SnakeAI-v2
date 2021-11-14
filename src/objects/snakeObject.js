@@ -1,11 +1,12 @@
 function snakeObjects(boxSize, totalBoxes, canvas, id) {
-  
-  this.startGame = () => {
+  this.startGame = (framesToRun, isPlayer) => {
+    this.endFrame = Number.isInteger(framesToRun) ? framesToRun: this.endFrame;
+    this.startFrame = 0;
+    this.isPlayer = isPlayer || this.isPlayer;
     console.log(`%cGame started for ${this.color}`, `color: ${this.color}`);
     window.requestAnimationFrame(this.gameLoop);
   }
   this.gameLoop = (timestamp) => {
-    
     if (this.previousTimeStamp === undefined) {
       this.previousTimeStamp = timestamp;
       this.startTime = timestamp;
@@ -13,10 +14,16 @@ function snakeObjects(boxSize, totalBoxes, canvas, id) {
     const elapsed = timestamp - this.previousTimeStamp;
     
     if (elapsed > this.fpsInterval) {
+      this.startFrame++;
       this.frames++;
       this.remainingMoves--;
       this.previousTimeStamp = timestamp - (elapsed % this.fpsInterval);
       window.requestAnimationFrame(() => update(this.id));
+    }
+    
+    if (this.startFrame <= this.endFrame) {
+      console.log("Game ended for timer");
+      return this.endGame();
     }
     
     this.currentGameLoopID = window.requestAnimationFrame(this.gameLoop);
@@ -38,39 +45,40 @@ function snakeObjects(boxSize, totalBoxes, canvas, id) {
     return;
   }
   this.getRandomLocation = function () {
-    return Math.floor(Math.random() * totalBoxes) * boxSize;
+    let half = totalBoxes / 2;
+    let quarter = half / 2;
+    
+    let random = Math.floor(Math.random() * (totalBoxes - half) + quarter);
+    return random * boxSize;
   }
   this.getOpposite = function (direction) {
-    if (typeof direction === undefined || direction == undefined) return [];
-    if (direction.letter === "w") return this.compass.up;
-    if (direction.letter === "s") return this.compass.down;
+    if (typeof direction === undefined || direction == undefined) return;
+    if (direction.letter === "w") return this.compass.down;
+    if (direction.letter === "s") return this.compass.up;
     if (direction.letter === "a") return this.compass.right;
     if (direction.letter === "d") return this.compass.left;
-    return [];
+    return;
   }
   this.getNextDirection = function () {
-    let direction = this.pressQueue.shift();
-    let oppositeOfLast = this.getOpposite(this.lastDirection);
+    let direction = this.pressQueue.shift() || this.direction;
+    let oppositeDirection = this.getOpposite(this.direction);
     
-    if ((direction && direction.letter) === oppositeOfLast.letter) {
-      direction = this.getOpposite(direction);
+    this.lastDirection = this.direction;
+    
+    if (oppositeDirection.letter === direction?.letter) {
+      return this.direction;
     }
-    
-    if (direction) { this.lastDirection = direction; }
-    return direction || this.direction;
+    return direction;
   }
   this.moveSnake = function () {
     let body = this.bodies;
     body.unshift({
       x: body[0].x + this.direction.x * boxSize,
-      y: body[0].y + this.direction.y * boxSize,
-      invisible: false
+      y: body[0].y + this.direction.y * boxSize
     });
     let last = body.pop();
-    body[body.length - 1].invisible = true;
     
-    return this.direction.x === 0 && this.direction.y === 0 
-      ? [{ x: -boxSize, y: -boxSize }] : [last];
+    return this.direction.x === 0 && this.direction.y === 0 ? undefined : [last];
   }
   this.pressHandler = function (key) {
     let direction = this.direction;
@@ -89,11 +97,12 @@ function snakeObjects(boxSize, totalBoxes, canvas, id) {
     let randomNum = Math.floor(Math.random() * 16777215);
     return `#${randomNum.toString(16).padStart(6, '0')}`;
   }
-  this.x = this.getRandomLocation();
-  this.y = this.getRandomLocation();
   this.color = this.getRandomColor();
   this.id = id;
+  this.isPlayer = false;
   
+  this.startFrame = 0;
+  this.endFrame = -1;
   this.startTime = 0;
   this.previousTimeStamp = 0;
   this.currentGameLoopID;
@@ -113,11 +122,13 @@ function snakeObjects(boxSize, totalBoxes, canvas, id) {
     left:  { x: -1, y: 0,  letter: "a" }
   };
   this.bodies = [
-    { x: this.x, y: this.y, invisible: false },
-    { x: this.x, y: this.y, invisible: true }
+    {
+      x: this.getRandomLocation(), 
+      y: this.getRandomLocation()
+    }
   ];
   this.foods = [];
-  this.lastDirection = [];
+  this.lastDirection;
   this.direction = (() => {
     // from start pick a random direction
     let keys = Object.keys(this.compass);

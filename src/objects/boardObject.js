@@ -18,8 +18,8 @@ function boardProps(boxes) {
         ) {
         return true;
       }
-      // if body has invisbale property
-      if (i === 0 || body.invisible) { continue; }
+      // first element is the snake head
+      if (i === 0) { continue; }
       // if head crashed with body part
       if (body.x === bodies[0].x  && body.y === bodies[0].y) {
         console.log("Suicide");
@@ -111,8 +111,13 @@ function boardProps(boxes) {
       this.drawSolidRect(food.x, food.y, loop_Index, "green");
     }
   }
+  this.snakeHead = (body, loop_Index) => {
+    this.drawSolidRect(body.x, body.y, loop_Index, "red");
+  }
   this.character = (bodies, loop_Index) => {
-    this.drawSolidRect(bodies[0].x, bodies[0].y, loop_Index, "red");
+    for (let body of bodies) {
+      this.drawSolidRect(body.x, body.y, loop_Index, "red");
+    }
   }
   this.container = [];
   this.colourize = (position, visualize, speed) => {
@@ -134,17 +139,26 @@ function boardProps(boxes) {
     this.ctx[index].rect(x, y, this.boxPixel, this.boxPixel);
     this.ctx[index].stroke();
   };
+  this.drawLineTo = (x, y, g, d, index) => {
+    this.ctx[index].beginPath();
+    this.ctx[index].moveTo(g, d);
+    this.ctx[index].lineTo(x, y);
+    this.ctx[index].stroke();
+  }
   this.drawMap = (loop_Index) => {
     for (let canvas of this.canvas) {
       for (let i = 0; i < canvas.width/this.boxPixel; i++) {
-        for (let j = 0; j < canvas.height/this.boxPixel; j++) {
-          this.drawSqure(i * this.boxPixel, j * this.boxPixel, loop_Index);
-        }
+        this.drawLineTo(
+          0, i * this.boxPixel, canvas.width, i * this.boxPixel, loop_Index
+        );
+        this.drawLineTo(
+          i * this.boxPixel, 0, i * this.boxPixel, canvas.height, loop_Index
+        );
       }
     }
   }
-  this.drawMapPart = (parts, loop_Index) => {
-    for (let [index, part] of parts.entries()) {
+  this.redrawMapPart = (parts, loop_Index) => {
+    for (let part of parts) {
       this.clearPixel(part.x, part.y, loop_Index);
       this.drawSqure(part.x ,part.y, loop_Index);
     }

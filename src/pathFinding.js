@@ -45,9 +45,11 @@ const aStar = {
           }
         }
         for (let [j, wall] of walls.entries()) {
-          if (j !== 0 && this.isSameCoordinate(wall, current)) {
+          if (this.isSameCoordinate(wall, current)) {
             grid[grid.length - 1].push(
-              this.getObjectArray(j === 1 ? {isHead: true}: {isWall: true}, current)
+              this.getObjectArray(
+                j === 0 ? { isHead: true }: { isWall: true }, current
+              )
             );
             continue outer;
           }
@@ -94,7 +96,9 @@ const aStar = {
           if (y === this.parent.Initial.HEAD) {
             obj.head = { row: i, column: j, direction: direction.letter };
           }
-          else if (y === this.parent.Initial.FOOD) obj.food.push({ row: i, column: j });
+          if (y === this.parent.Initial.FOOD) {
+            obj.food.push({ row: i, column: j });
+          }
         }
       }
       return obj;
@@ -209,8 +213,8 @@ const aStar = {
       this.init = false;
     }
     
-    this.mapArray = this.proto.convertGridToArray(map, obj.bodies,obj.foods);
-    this.mapGrid = this.proto.createGridFromArray(this.mapArray);
+    let mapArray = this.proto.convertGridToArray(map, obj.bodies, obj.foods);
+    this.mapGrid = this.proto.createGridFromArray(mapArray);
     
     let { food, head } = this.proto.getAllObjectLocation(obj.direction);
     

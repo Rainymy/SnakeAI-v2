@@ -2,7 +2,9 @@
 <html lang="en" dir="ltr">
   <head>
     <meta http-equiv="Content-Security-Policy" content="style-src 'self'">
-    <meta http-equiv="Content-Security-Policy"content="script-src 'self' 'unsafe-inline'">
+    <meta 
+      http-equiv="Content-Security-Policy" 
+      content="script-src 'self' 'unsafe-inline'">
     <title>SnakeAI</title>
     <link rel="shortcut icon" type="image/x-icon" href="./favicon.png">
     <link rel="stylesheet" href="./src/index.css">
@@ -25,6 +27,7 @@
               Change
             </button>
           </div>
+          <button id="player-button" class="btn bold"></button>
         </div>
         <div class="gameDiv">
           <div>
@@ -37,7 +40,6 @@
   </body>
   <script defer type="text/javascript" charset="utf-8">
     function load_modules() {
-      
       let list = [
         "./src/objects/boardManager.js",
         "./src/objects/boardObject.js",
@@ -62,14 +64,40 @@
       snakes = manager.populate(snakeObjects);
       for (let snake of snakes) {
         snake.spawnFood(manager.getRandomLocations(snake.bodies));
-        window.requestAnimationFrame(snake.startGame);
+        window.requestAnimationFrame(() => {
+          let bool = localStorage.isPlayer === "true" ? true : false;
+          return snake.startGame("", bool);
+        });
+      }
+      manager.resetScore();
+      return;
+    }
+    
+    function moveAllSnake(direction) {
+      for (let snake of snakes) {
+        snake.pressQueue.push(direction);
       }
       return;
     }
     
     // init when page done loading
     window.addEventListener("load", () => {
-      if (!localStorage.getItem("totalCanvas")) localStorage.setItem("totalCanvas", 1);
+      if (!localStorage.getItem("totalCanvas")) {
+        localStorage.setItem("totalCanvas", 1);
+      }
+      if (!localStorage.getItem("isPlayer")) {
+        localStorage.setItem("isPlayer", false);
+      }
+      
+      let button = document.querySelector("#player-button");
+      button.textContent = localStorage.isPlayer === "true" ? "Player" : "AI";
+      
+      button.addEventListener("click", function () {
+        let value = localStorage.isPlayer === "true" ? false : true;
+        localStorage.setItem("isPlayer", value);
+        location.reload();
+        return;
+      });
       
       manager = new boardManager();
       manager.createGameGround(
@@ -80,17 +108,27 @@
         if (event.key === "Escape") {
           for (let snake of snakes) { snake.endGame(); }
         }
-        else if (event.key === "§") aStar.search(currentSnake, manager.wholeMap);
+        if (event.key === "§") {
+          aStar.search(currentSnake, manager.wholeMap);
+        }
+        if (event.key === "p") {
+          currentSnake.startGame(1);
+        }
+        if (event.key === "o") {
+          currentSnake.startGame(-1);
+        }
       });
       
       document.querySelector("#trying").addEventListener("click", function () {
         manager.reInit(snakes, snakeObjects);
         startGame();
-        manager.resetScore();
       });
       
-      document.querySelector("#changeTotal").addEventListener("click", function (event) {
-        let number = Math.floor(parseInt(event.target.previousElementSibling.value));
+      let changeTotal = document.querySelector("#changeTotal");
+      changeTotal.addEventListener("click", function (event) {
+        let input = event.target.previousElementSibling.value;
+        let number = Math.floor(parseInt(input));
+        
         if (!Number.isNaN(number) && 1 <= number) {
           localStorage.setItem("totalCanvas", number);
           location.reload();
@@ -98,6 +136,26 @@
       });
       
       startGame();
+      
+      if (localStorage.isPlayer === "true") {
+        document.body.addEventListener("keydown", function (event) {
+          if (event.key === "w") {
+            moveAllSnake(currentSnake.compass.up);
+          }
+          else if (event.key === "s") {
+            moveAllSnake(currentSnake.compass.down);
+          }
+          else if (event.key === "d") {
+            moveAllSnake(currentSnake.compass.right);
+          }
+          else if (event.key === "a") {
+            moveAllSnake(currentSnake.compass.left);
+          }
+        });
+      }
+      
+      
+      
     }, { once: true });
   </script>
 </html>

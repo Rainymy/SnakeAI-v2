@@ -20,31 +20,40 @@ function update(loopIndex) {
   for (let [ index, food ] of foods.entries()) {
     if (food.x === bodies[0].x && food.y === bodies[0].y) {
       let score = canvas.parentNode.querySelector(".score-count");
-      console.log(currentSnake.score);
       score.textContent = `Score: ${++currentSnake.score}`;
       
-      bodies.unshift({ x: bodies[0].x, y: bodies[0].y, invisible: false });
-      let newFood = manager.getRandomAvailableLocation(bodies, gameBoard.boxSize);
+      bodies.unshift({ x: bodies[0].x, y: bodies[0].y });
+      let newFood = manager.getRandomAvailableLocation(bodies);
+      
+      if (!newFood) {
+        newFood = { x: -gameBoard.boxPixel, y: -gameBoard.boxPixel }
+      }
       foods.splice(index, 1, { x: newFood.x, y: newFood.y });
       
       currentSnake.resetRemainingMoves();
     }
   }
+  let snakeTail = currentSnake.moveSnake();
   
-  gameBoard.character(bodies, loopIndex);
+  gameBoard.redrawMapPart(snakeTail, loopIndex);
   gameBoard.drawFoods(foods, loopIndex);
-  gameBoard.drawMapPart(currentSnake.moveSnake(), loopIndex);
+  gameBoard.snakeHead(bodies[0], loopIndex);
   
-  if (!currentSnake.pressQueue.length) {
-    for (let move of aStar.search(currentSnake, manager.wholeMap, totalRowBoxes)) {
-      currentSnake.pressQueue.push(currentSnake.pressHandler( move ));
+  if (!currentSnake.isPlayer) {
+    if (!currentSnake.pressQueue.length) {
+      let pathes = aStar.search(currentSnake, manager.wholeMap, totalRowBoxes);
+      // pathes.shift();
+      pathes.pop();
+      for (let move of pathes) {
+        currentSnake.pressQueue.push(currentSnake.pressHandler( move ));
+      }
     }
+    
+    // When snake gets near the walls. Activates with threshold
+    gameBoard.checkNearBorder(
+      manager.boarders, currentSnake, currentSnake.threshold
+    );
   }
-  
-  // When snake gets near the walls. Activates with threshold
-  gameBoard.checkNearBorder(
-    manager.boarders, currentSnake, currentSnake.threshold
-  );
   
   currentSnake.direction = currentSnake.getNextDirection();
 }
