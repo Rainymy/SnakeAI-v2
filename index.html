@@ -5,7 +5,7 @@
     <meta 
       http-equiv="Content-Security-Policy" 
       content="script-src 'self' 'unsafe-inline'">
-    <title>SnakeAI</title>
+    <title>SnakeAI-v2</title>
     <link rel="shortcut icon" type="image/x-icon" href="./favicon.png">
     <link rel="stylesheet" href="./src/index.css">
   </head>
@@ -120,18 +120,50 @@
         document.querySelector(".gameDiv > div"), localStorage.totalCanvas
       );
       
+      console.warn("DEBUG Buttons");
+      console.table({
+        ESC: "Pause all games",
+        "§": "Check if Algorithm founds a path",
+        "p": "Resume all games",
+        "o": "Run All games 1 frame",
+        "u": "Draw a found path from snake to food"
+      });
+      console.warn("DEBUG Buttons");
+      
       document.body.addEventListener("keyup", function (event) {
         if (event.key === "Escape") {
           for (let snake of snakes) { snake.endGame(); }
         }
         if (event.key === "§") {
-          aStar.search(currentSnake, manager.wholeMap);
+          for (let snake of snakes) {
+            aStar.search(snake, manager.wholeMap);
+          }
         }
         if (event.key === "p") {
           for (let snake of snakes) { snake.startGame(1); }
         }
         if (event.key === "o") {
           for (let snake of snakes) { snake.startGame(-1); }
+        }
+        if (event.key === "u") {
+          for (let snake of snakes) {
+            gameBoard.clearScreen(snake.id);
+            gameBoard.drawMap(snake.id);
+            
+            let pathes = aStar.search(
+              snake, manager.wholeMap, totalRowBoxes
+            );
+            
+            for (let path of pathes[1]) {
+              gameBoard.snakeHead({
+                x: path.row * gameBoard.boxPixel,
+                y: path.column * gameBoard.boxPixel
+              }, snake.id, "skyblue");
+            }
+            
+            gameBoard.drawFoods(snake.foods, snake.id);
+            gameBoard.character(snake.bodies, snake.id, snake.color);
+          }
         }
       });
       

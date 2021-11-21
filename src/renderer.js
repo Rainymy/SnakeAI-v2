@@ -38,9 +38,7 @@ function update(loopIndex) {
   if (!currentSnake.isPlayer) {
     if (!currentSnake.pressQueue.length) {
       let pathes = aStar.search(currentSnake, manager.wholeMap, totalRowBoxes);
-      // pathes.shift();
-      pathes.pop();
-      for (let move of pathes) {
+      for (let move of pathes[0]) {
         currentSnake.pressQueue.push(currentSnake.pressHandler( move ));
       }
     }

@@ -115,24 +115,9 @@ function boardProps(boxes) {
   this.snakeHead = (body, loop_Index, color) => {
     this.drawSolidRect(body.x, body.y, loop_Index, color || "red");
   }
-  this.character = (bodies, loop_Index) => {
+  this.character = (bodies, loop_Index, color) => {
     for (let body of bodies) {
-      this.drawSolidRect(body.x, body.y, loop_Index, "red");
-    }
-  }
-  this.container = [];
-  this.colourize = (position, visualize, speed) => {
-    let location;
-    if (position.hasOwnProperty("row")) {
-      location = { x: position.row * this.boxPixel, y: position.column * this.boxPixel }
-    }
-    this.container.push(location);
-    if (visualize) {
-      let id = setInterval(() => {
-        if (this.container.length <= 0) return clearInterval(id);
-        let { x, y } = this.container.shift();
-        this.drawSolidRect(x, y, 0, "white");
-      }, parseInt(speed) || 250);
+      this.drawSolidRect(body.x, body.y, loop_Index, color || "red");
     }
   }
   this.drawSqure = (x, y, index) => {

@@ -25,11 +25,6 @@ const aStar = {
       for (let value of array) { if (firstValue === value) { return true; }}
       return false;
     },
-    colourize: function (array, flag) {
-      for (let [i, per] of array.entries()) {
-        gameBoard.colourize(per,i === array.length - 1 ?true: false, flag && flag.speed);
-      }
-    },
     convertGridToArray: function (list, walls, foods) {
       let grid = [];
       let last = null;
@@ -182,10 +177,11 @@ const aStar = {
     while (openNode.length) {
       currentNode = this.proto.getLowestCostTile(openNode, food);
       if (this.proto.isSameCoordinate(currentNode, food)) {
-        // console.log("PATH FOUND");
+        console.log("PATH FOUND");
         let ret = [], curr = currentNode;
         while (curr.parent) ret.push(curr = curr.parent);
         // this.proto.colourize(ret.map(v => Object.assign({}, v)).reverse());
+        this.container = ret;
         return ret.map(v => delete v.parent ? v : v).reverse();
       }
       closedNode.push(...openNode.splice(openNode.indexOf(currentNode), 1));
@@ -200,13 +196,15 @@ const aStar = {
       }
       // Safety Brake, do not comment this
       if (++totalLoop >= this.safetyBrake ) {
-        // console.log("PATH NOT FOUND!");
+        console.log("PATH NOT FOUND!");
         // this.proto.colourize(closedNode, { speed: 50 });
+        this.container = closedNode;
         break;
       }
     }
     return [];
   },
+  container: [],
   search: function (obj, map, brake) {
     if (this.init) {
       this.safetyBrake = this.proto.validateNumber(brake);
@@ -214,12 +212,14 @@ const aStar = {
       this.init = false;
     }
     
+    this.container.length = 0;
     let mapArray = this.proto.convertGridToArray(map, obj.bodies, obj.foods);
     this.mapGrid = this.proto.createGridFromArray(mapArray);
     
     let { food, head } = this.proto.getAllObjectLocation(obj.direction);
     
     let foundPath = this.findPathFromTo(head, this.proto.getNearestFood(food, head));
-    return this.proto.translate(foundPath, head);
+    
+    return [ this.proto.translate(foundPath, head), foundPath ];
   }
 }
