@@ -120,6 +120,7 @@ const aStar = {
       return !Number.isNaN(number) && 1 <= number ? number: 0;
     },
     heuristic: function (start, end) {
+      if (!end) { return 0; }
       return Math.abs(end.row - start.row) + Math.abs(end.column - start.column);
     },
     getIndexWithLowestValue: function (array) {
@@ -181,7 +182,7 @@ const aStar = {
     while (openNode.length) {
       currentNode = this.proto.getLowestCostTile(openNode, food);
       if (this.proto.isSameCoordinate(currentNode, food)) {
-        console.log("PATH FOUND");
+        // console.log("PATH FOUND");
         let ret = [], curr = currentNode;
         while (curr.parent) ret.push(curr = curr.parent);
         // this.proto.colourize(ret.map(v => Object.assign({}, v)).reverse());
@@ -199,7 +200,7 @@ const aStar = {
       }
       // Safety Brake, do not comment this
       if (++totalLoop >= this.safetyBrake ) {
-        console.log("PATH NOT FOUND!");
+        // console.log("PATH NOT FOUND!");
         // this.proto.colourize(closedNode, { speed: 50 });
         break;
       }

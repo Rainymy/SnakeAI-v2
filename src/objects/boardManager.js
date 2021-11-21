@@ -21,14 +21,8 @@ function boardManager() {
       board.drawMap(this.current);
       this.current++;
     }
-    return players;
-  }
-  this.reInit = function (snakes, snakeObj) {
     this.current = 0;
-    for (let snake of snakes) { snake.endGame(); }
-    snakes.length = 0;
-    // snakes.push(...this.populate(snakeObj));
-    // this.resetScore();
+    return players;
   }
   /*---------------------- Map ------------------------*/
   this.getRandomAvailableLocation = function (bodies) {
@@ -41,6 +35,9 @@ function boardManager() {
         return true;
       });
     });
+    if (!available.length) {
+      return { x: -this.gameBoard.boxPixel, y: -this.gameBoard.boxPixel }
+    }
     return available[Math.floor(Math.random() * available.length)];
   }
   this.isMapAvaible = function () {
@@ -77,6 +74,21 @@ function boardManager() {
       );
     }
     return locations;
+  }
+  /*------------------ Update UI ---------------------*/
+  this.updateScore = function (canvas, score) {
+    let scoreElement = canvas.parentNode.querySelector(".score-count");
+    scoreElement.textContent = `Score: ${score}`;
+    return;
+  }
+  this.displayGameEnded = function (canvas) {
+    canvas.parentNode.querySelector("#gameEnded").style.display = "";
+    return;
+  }
+  this.updateFPS = function (canvas, fps) {
+    let fpsElement = canvas.parentNode.querySelector(".fps-count");
+    fpsElement.textContent = `FPS: ${fps} - `;
+    return;
   }
   /*---------------------- UI ------------------------*/
   this.createElement = function (tag, id) {

@@ -1,5 +1,6 @@
 function boardProps(boxes) {
   // Genenal
+  this.aliveSnakes = 0;
   this.canvas = document.getElementsByTagName('canvas');
   this.ctx = (() => {
     let ctx = [];
@@ -39,11 +40,11 @@ function boardProps(boxes) {
           if (nextDirection && direction === "d" || !nextDirection) {
             currentSnake.pressQueue.length = 0;
             if (border.width / 2 < head.y) {
-              console.log("Go Up");
+              // console.log("Go Up");
               currentSnake.pressQueue.push({ x: 0, y: -1, letter: "w" });
             }
             else {
-              console.log("Go Down");
+              // console.log("Go Down");
               currentSnake.pressQueue.push({ x: 0, y: 1, letter: "s" });
             }
           }
@@ -52,11 +53,11 @@ function boardProps(boxes) {
           if (nextDirection && direction === "a" || !nextDirection) {
             currentSnake.pressQueue.length = 0;
             if (border.width / 2 < head.y) {
-              console.log("Go Up");
+              // console.log("Go Up");
               currentSnake.pressQueue.push({ x: 0, y: -1, letter: "w" });
             }
             else {
-              console.log("Go Down");
+              // console.log("Go Down");
               currentSnake.pressQueue.push({ x: 0, y: 1, letter: "s" });
             }
           }
@@ -67,11 +68,11 @@ function boardProps(boxes) {
           if (nextDirection && direction === "s" || !nextDirection) {
             currentSnake.pressQueue.length = 0;
             if (border.height / 2 < head.x) {
-              console.log("Go Right");
+              // console.log("Go Right");
               currentSnake.pressQueue.push({ x: -1, y: 0, letter: "a" });
             }
             else {
-              console.log("Go Left");
+              // console.log("Go Left");
               currentSnake.pressQueue.push({ x: 1, y: 0, letter: "d" });
             }
           }
@@ -80,11 +81,11 @@ function boardProps(boxes) {
           if (nextDirection && direction === "w" || !nextDirection) {
             currentSnake.pressQueue.length = 0;
             if (border.height / 2 < head.x) {
-              console.log("Go Left");
+              // console.log("Go Left");
               currentSnake.pressQueue.push({ x: -1, y: 0, letter: "a" });
             }
             else {
-              console.log("Go Right");
+              // console.log("Go Right");
               currentSnake.pressQueue.push({ x: 1, y: 0, letter: "d" });
             }
           }
@@ -111,8 +112,8 @@ function boardProps(boxes) {
       this.drawSolidRect(food.x, food.y, loop_Index, "green");
     }
   }
-  this.snakeHead = (body, loop_Index) => {
-    this.drawSolidRect(body.x, body.y, loop_Index, "red");
+  this.snakeHead = (body, loop_Index, color) => {
+    this.drawSolidRect(body.x, body.y, loop_Index, color || "red");
   }
   this.character = (bodies, loop_Index) => {
     for (let body of bodies) {

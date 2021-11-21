@@ -59,14 +59,30 @@
     };
     load_modules();
     
+    function snakeDead(meta) {
+      manager.aliveSnakes--;
+      if (manager.aliveSnakes >= 1) {
+        return;
+      }
+      console.log("All Snake Died");
+      // startGame();
+    }
+    
     function startGame() {
+      if (typeof snakes !== 'undefined' && snakes.length !== 0) {
+        for (let snake of snakes) { snake.endGame(); }
+        snakes.length = 0;
+      }
       manager.gameBoard = gameBoard = new boardProps(totalRowBoxes);
       snakes = manager.populate(snakeObjects);
+      manager.aliveSnakes = snakes.length;
       for (let snake of snakes) {
-        snake.spawnFood(manager.getRandomLocations(snake.bodies));
+        snake.spawnFood(manager.getRandomLocations(snake.bodies, 1));
+        snake.on("death", (data) => snakeDead(data));
+        
         window.requestAnimationFrame(() => {
           let bool = localStorage.isPlayer === "true" ? true : false;
-          return snake.startGame("", bool);
+          return snake.startGame(undefined, bool);
         });
       }
       manager.resetScore();
@@ -112,17 +128,14 @@
           aStar.search(currentSnake, manager.wholeMap);
         }
         if (event.key === "p") {
-          currentSnake.startGame(1);
+          for (let snake of snakes) { snake.startGame(1); }
         }
         if (event.key === "o") {
-          currentSnake.startGame(-1);
+          for (let snake of snakes) { snake.startGame(-1); }
         }
       });
       
-      document.querySelector("#trying").addEventListener("click", function () {
-        manager.reInit(snakes, snakeObjects);
-        startGame();
-      });
+      document.querySelector("#trying").addEventListener("click", startGame);
       
       let changeTotal = document.querySelector("#changeTotal");
       changeTotal.addEventListener("click", function (event) {

@@ -1,19 +1,22 @@
 function snakeObjects(boxSize, totalBoxes, canvas, id) {
   this.startGame = (framesToRun, isPlayer) => {
-    this.endFrame = Number.isInteger(framesToRun) ? framesToRun: this.endFrame;
+    // console.log(`%cGame started for ${this.color}`, `color: ${this.color}`);
+    this.endFrame = framesToRun ?? this.endFrame;
     this.startFrame = 0;
+    this.isAlive = true;
     this.isPlayer = isPlayer || this.isPlayer;
-    console.log(`%cGame started for ${this.color}`, `color: ${this.color}`);
-    window.requestAnimationFrame(this.gameLoop);
+    return window.requestAnimationFrame(this.gameLoop);
   }
   this.gameLoop = (timestamp) => {
     if (this.previousTimeStamp === undefined) {
       this.previousTimeStamp = timestamp;
       this.startTime = timestamp;
     }
+    
     const elapsed = timestamp - this.previousTimeStamp;
     
     if (elapsed > this.fpsInterval) {
+      // console.log(`Snake: %c${this.frames}`, `color: ${this.color}`);
       this.startFrame++;
       this.frames++;
       this.remainingMoves--;
@@ -27,16 +30,24 @@ function snakeObjects(boxSize, totalBoxes, canvas, id) {
     }
     
     this.currentGameLoopID = window.requestAnimationFrame(this.gameLoop);
-    
     return;
   }
   this.endGame = () => {
+    // console.log("%cGame ended", `color: ${this.color}`);
     return window.cancelAnimationFrame(this.currentGameLoopID); 
+  }
+  this.on = async (inputEvent, callback) => {
+    if (!callback && typeof callback !== "function") {
+      return console.warn(new Error("Require a Callback"));
+    }
+    let event = this.events[inputEvent.toLowerCase()];
+    if (typeof event === "function") {
+      return event(callback);
+    }
   }
   this.fpsCount = function () {
     return Math.round(1000 / (this.previousTimeStamp / this.frames) * 100) / 100;
   }
-  
   this.hasMoveLeft = function () {
     return this.remainingMoves <= 0 ? false : true;
   }
@@ -88,6 +99,22 @@ function snakeObjects(boxSize, totalBoxes, canvas, id) {
     else if (key === "a" && direction !== "d") return this.compass.left;
     return null;
   }
+  this.isEating = function () {
+    for (let [ index, food ] of this.foods.entries()) {
+      if (food.x === this.bodies[0].x && food.y === this.bodies[0].y) {
+        return index;
+      }
+    }
+    return;
+  }
+  this.eatFood = function () {
+    this.bodies.unshift({ x: this.bodies[0].x, y: this.bodies[0].y });
+    return this.bodies; 
+  }
+  this.replaceFood = function (location, index) {
+    this.foods.splice(index, 1, { x: location.x, y: location.y });
+    return this.foods;
+  }
   this.spawnFood = function (locations) {
     for (let location of locations) {
       this.foods.push({ x: location.x, y: location.y });
@@ -97,9 +124,30 @@ function snakeObjects(boxSize, totalBoxes, canvas, id) {
     let randomNum = Math.floor(Math.random() * 16777215);
     return `#${randomNum.toString(16).padStart(6, '0')}`;
   }
+  this.death = async (callback) => {
+    return await new Promise((resolve, reject) => {
+      let loop = setInterval(() => {
+        if (this.isAlive) { return; }
+        clearInterval(loop);
+        
+        resolve(callback({ isAlive: this.isAlive, id: this.id }));
+      }, this.eventResponseTime);
+    });
+  }
+  
   this.color = this.getRandomColor();
   this.id = id;
   this.isPlayer = false;
+  this.isAlive = true;
+  
+  this.eventResponseTime = 200;
+  this.events = {
+    death: this.death,
+    frame: () => { return; },
+    start: () => { return; }
+  }
+  
+  this.model;
   
   this.startFrame = 0;
   this.endFrame = -1;
