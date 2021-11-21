@@ -77,3 +77,4 @@ typings/
 
 # electron-builder output
 /dist
+*.pfx

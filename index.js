@@ -1,6 +1,6 @@
 const { app, BrowserWindow } = require('electron');
 const path = require('path');
-const isDev = require('electron-is-dev') ?? false;
+const isDev = require('electron-is-dev');
 
 if (require('electron-squirrel-startup')) { app.quit(); }
 
@@ -9,7 +9,7 @@ const createWindow = () => {
   const mainWindow = new BrowserWindow({
     width: isDev ? 1200 : 650,
     height: 700,
-    icon: path.join(__dirname, "/favicon.png"),
+    icon: path.join(__dirname, "./icon/icon.png"),
     removeMenu: true,
     webPreferences: {
       nodeIntegration: false,
