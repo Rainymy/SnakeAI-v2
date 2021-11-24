@@ -1,34 +1,24 @@
-function boardProps(boxes) {
+function CanvasUI(boxes, canvasSize) {
   // Genenal
-  this.aliveSnakes = 0;
-  this.canvas = document.getElementsByTagName('canvas');
-  this.ctx = (() => {
-    let ctx = [];
-    for (let context of this.canvas) ctx.push(context.getContext('2d'));
-    return ctx;
-  })();
   this.totalBoxes = Math.floor(boxes) || 10;
-  this.boxPixel = Math.round(this.canvas[0].width / this.totalBoxes);
+  this.boxPixel = Math.round(canvasSize / this.totalBoxes);
   
-  this.isGameEnded = function (bodies, loop_Index) {
-    for (let [ i, body ] of bodies.entries()) {
-      // if head is outside of the box 
-      if (
-          this.canvas[loop_Index].width  <= body.x || 0 > body.x ||
-          this.canvas[loop_Index].height <= body.y || 0 > body.y
-        ) {
-        return true;
-      }
-      // first element is the snake head
-      if (i === 0) { continue; }
-      // if head crashed with body part
-      if (body.x === bodies[0].x  && body.y === bodies[0].y) {
-        console.log("Suicide");
-        return true;
-      }
+  this.populate = function (snakeObj, boardsId) {
+    let players = [];
+    let canvas;
+    
+    for (let board of boardsId) {
+      canvas = document.getElementById(`${board}`);
+      if (canvas === null) { continue; }
+      
+      players.push( new snakeObj( this.boxPixel, this.totalBoxes, canvas ) );
+      
+      this.clearScreen(canvas);
+      this.drawMap(canvas);
     }
-    return false;
+    return players;
   }
+  
   this.checkNearBorder = function (borders, currentSnake, threshold) {
     let head = currentSnake.bodies[0];
     let nextDirection = currentSnake.pressQueue[1];
@@ -94,59 +84,58 @@ function boardProps(boxes) {
     }
   }
   // Entities/Structure
-  this.clearScreen = (loop_Index) => {
-    let context = this.canvas[loop_Index];
-    context.getContext('2d').clearRect(0, 0, context.width, context.height);
+  this.clearScreen = (canvas) => {
+    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
   }
-  this.clearPixel = (x, y, loop_Index) => {
-    let context = this.canvas[loop_Index];
-    context.getContext('2d').clearRect(x, y, this.boxPixel, this.boxPixel);
+  this.clearPixel = (x, y, canvas) => {
+    canvas.getContext('2d').clearRect(x, y, this.boxPixel, this.boxPixel);
   }
-  this.drawSolidRect = (x, y, index, colour) => {
-    this.ctx[index].beginPath();
-    this.ctx[index].fillStyle = colour || "black";
-    this.ctx[index].fillRect(x, y, this.boxPixel, this.boxPixel);
+  this.drawSolidRect = (x, y, canvas, colour) => {
+    let context = canvas.getContext('2d');
+    context.beginPath();
+    context.fillStyle = colour || "black";
+    context.fillRect(x, y, this.boxPixel, this.boxPixel);
   }
-  this.drawFoods = (foods, loop_Index) => {
+  this.drawFoods = (foods, canvas) => {
     for (let food of foods) {
-      this.drawSolidRect(food.x, food.y, loop_Index, "green");
+      this.drawSolidRect(food.x, food.y, canvas, "green");
     }
   }
-  this.snakeHead = (body, loop_Index, color) => {
-    this.drawSolidRect(body.x, body.y, loop_Index, color || "red");
+  this.snakeHead = (body, canvas, color) => {
+    this.drawSolidRect(body.x, body.y, canvas, color || "red");
   }
-  this.character = (bodies, loop_Index, color) => {
+  this.character = (bodies, canvas, color) => {
     for (let body of bodies) {
-      this.drawSolidRect(body.x, body.y, loop_Index, color || "red");
+      this.drawSolidRect(body.x, body.y, canvas, color || "red");
     }
   }
-  this.drawSqure = (x, y, index) => {
-    this.ctx[index].beginPath();
-    this.ctx[index].rect(x, y, this.boxPixel, this.boxPixel);
-    this.ctx[index].stroke();
-  };
-  this.drawLineTo = (x, y, g, d, index) => {
-    this.ctx[index].beginPath();
-    this.ctx[index].moveTo(g, d);
-    this.ctx[index].lineTo(x, y);
-    this.ctx[index].stroke();
+  this.drawSqure = (x, y, canvas) => {
+    let context = canvas.getContext('2d');
+    context.beginPath();
+    context.rect(x, y, this.boxPixel, this.boxPixel);
+    context.stroke();
   }
-  this.drawMap = (loop_Index) => {
-    for (let canvas of this.canvas) {
-      for (let i = 0; i < canvas.width/this.boxPixel; i++) {
-        this.drawLineTo(
-          0, i * this.boxPixel, canvas.width, i * this.boxPixel, loop_Index
-        );
-        this.drawLineTo(
-          i * this.boxPixel, 0, i * this.boxPixel, canvas.height, loop_Index
-        );
-      }
+  this.drawLineTo = (x, y, g, d, canvas) => {
+    let context = canvas.getContext("2d");
+    context.beginPath();
+    context.moveTo(g, d);
+    context.lineTo(x, y);
+    context.stroke();
+  }
+  this.drawMap = (canvas) => {
+    for (let i = 0; i < canvas.width/this.boxPixel; i++) {
+      this.drawLineTo(
+        0, i * this.boxPixel, canvas.width, i * this.boxPixel, canvas
+      );
+      this.drawLineTo(
+        i * this.boxPixel, 0, i * this.boxPixel, canvas.height, canvas
+      );
     }
   }
-  this.redrawMapPart = (parts, loop_Index) => {
+  this.redrawMapPart = (parts, canvas) => {
     for (let part of parts) {
-      this.clearPixel(part.x, part.y, loop_Index);
-      this.drawSqure(part.x ,part.y, loop_Index);
+      this.clearPixel(part.x, part.y, canvas);
+      this.drawSqure(part.x ,part.y, canvas);
     }
   }
 }

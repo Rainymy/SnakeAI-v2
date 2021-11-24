@@ -1,39 +1,63 @@
-let totalRowBoxes = 18;
-let gameBoard;
-let snakes = [];
-let manager = null;
-let currentSnake = null;
+let totalRowBoxes = 20;
+let canvasSize = 500;
 
-function update(loopIndex) {
-  let { bodies, foods, canvas } = currentSnake = snakes[loopIndex];
+let canvasUI, pageUI, manager, currentSnake;
+let snakes = [];
+
+function update(currentSnake) {
+  let { bodies, foods, canvas, compass } = currentSnake;
   
-  let isEnded = gameBoard.isGameEnded(bodies, loopIndex);
+  pageUI.updateFPS(canvas, currentSnake.fpsCount());
+  pageUI.updateRemainingLife(canvas, currentSnake.remainingMoves);
+  
+  let isEnded = currentSnake.isGameEnded();
   let hasRemainingMove = currentSnake.hasMoveLeft();
   let isAlive = currentSnake.isAlive;
   
   if (!isAlive || isEnded || !hasRemainingMove) {
-    manager.displayGameEnded(canvas);
+    pageUI.displayGameEnded(canvas);
     currentSnake.isAlive = false;
     return currentSnake.endGame();
   }
   
-  manager.updateFPS(canvas, currentSnake.fpsCount());
-  
   let foodIndex = currentSnake.isEating();
   if (typeof foodIndex === "number") {
-    manager.updateScore(canvas, ++currentSnake.score);
+    pageUI.updateScore(canvas, ++currentSnake.score);
     currentSnake.eatFood();
-  
+    
+    currentSnake.fitnessScore += currentSnake.points.eat;
+    
     let newFood = manager.getRandomAvailableLocation(bodies);
   
     currentSnake.replaceFood(newFood, foodIndex);
     currentSnake.resetRemainingMoves();
   }
-  let snakeTail = currentSnake.moveSnake();
+  let [ head, ghostTail, tail ] = currentSnake.moveSnake();
+    
+  canvasUI.redrawMapPart(ghostTail, canvas);
+  canvasUI.drawFoods(foods, canvas);
+  canvasUI.snakeHead(bodies[0], canvas, currentSnake.color);
   
-  gameBoard.redrawMapPart(snakeTail, loopIndex);
-  gameBoard.drawFoods(foods, loopIndex);
-  gameBoard.snakeHead(bodies[0], loopIndex, currentSnake.color);
+  currentSnake.fitnessScore += currentSnake.points.frame;
+  
+  // Distance 4(Array) * 3 = 12 input.
+  let foodDistance = manager.calculateDistance( head, [ foods[0] ] );
+  let tailDistance = manager.calculateDistance( head, [ tail ] );
+  let wallDistance = manager.calculateDistance( head, manager.borders );
+  
+  // Additional info. 1 + 4(Array) = 5
+  let size = bodies.length;
+  let direction = manager.getDirection( currentSnake.direction, compass );
+  
+  // 12 + 5 = 17 input
+  console.log("----------------------------------------");
+  console.log(foodDistance);
+  console.log(tailDistance);
+  console.log(wallDistance);
+  
+  console.log(size);
+  console.log(direction);
+  console.log("----------------------------------------");
   
   if (!currentSnake.isPlayer) {
     if (!currentSnake.pressQueue.length) {
@@ -44,7 +68,7 @@ function update(loopIndex) {
     }
     
     // When snake gets near the walls. Activates with threshold
-    gameBoard.checkNearBorder(
+    canvasUI.checkNearBorder(
       manager.boarders, currentSnake, currentSnake.threshold
     );
   }
