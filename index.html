@@ -41,9 +41,10 @@
   <script defer type="text/javascript" charset="utf-8">
     function load_modules() {
       let list = [
-        "./src/objects/boardManager.js",
-        "./src/objects/boardObject.js",
+        "./src/objects/PageUI.js",
+        "./src/objects/CanvasUI.js",
         "./src/objects/snakeObject.js",
+        "./src/objects/Manager.js",
         "./src/pathFinding.js",
         "./src/renderer.js"
       ]
@@ -60,6 +61,7 @@
     load_modules();
     
     function snakeDead(meta) {
+      // console.log(meta);
       manager.aliveSnakes--;
       if (manager.aliveSnakes >= 1) {
         return;
@@ -73,25 +75,28 @@
         for (let snake of snakes) { snake.endGame(); }
         snakes.length = 0;
       }
-      manager.gameBoard = gameBoard = new boardProps(totalRowBoxes);
-      snakes = manager.populate(snakeObjects);
+      canvasUI = new CanvasUI(totalRowBoxes, canvasSize);
+      
+      snakes = canvasUI.populate(snakeObjects, pageUI.canvasIds);
       manager.aliveSnakes = snakes.length;
+      
       for (let snake of snakes) {
         snake.spawnFood(manager.getRandomLocations(snake.bodies, 1));
-        snake.on("death", (data) => snakeDead(data));
+        // snake.init({}, [{}, {}], {});
+        snake.on("death", snakeDead);
         
         window.requestAnimationFrame(() => {
           let bool = localStorage.isPlayer === "true" ? true : false;
           return snake.startGame(undefined, bool);
         });
       }
-      manager.resetScore();
+      pageUI.resetScore();
       return;
     }
     
     function moveAllSnake(direction) {
       for (let snake of snakes) {
-        snake.pressQueue.push(direction);
+        snake.pressQueue.push(snake.compass[direction]);
       }
       return;
     }
@@ -115,12 +120,40 @@
         return;
       });
       
-      manager = new boardManager();
-      manager.createGameGround(
-        document.querySelector(".gameDiv > div"), localStorage.totalCanvas
+      pageUI = new PageUI();
+      pageUI.createGameGround(
+        document.querySelector(".gameDiv > div"), 
+        canvasSize, 
+        localStorage.totalCanvas
       );
+      manager = new Manager(totalRowBoxes, canvasSize);
       
       console.warn("DEBUG Buttons");
+      
+      const controller = [
+        {
+          key: "ESC",
+          Description: "Pause all games"
+        },
+        {
+          key: "§",
+          Description: "Check if Algorithm founds a path"
+        },
+        {
+          key: "p",
+          Description: "Resume all games"
+        },
+        {
+          key: "o",
+          Description: "Run All games 1 frame"
+        },
+        {
+          key: "u",
+          Description: "Draw a found path from snake to food"
+        }
+      ]
+      
+      console.info("Press keys.", ...controller);
       console.table({
         ESC: "Pause all games",
         "§": "Check if Algorithm founds a path",
@@ -136,7 +169,7 @@
         }
         if (event.key === "§") {
           for (let snake of snakes) {
-            aStar.search(snake, manager.wholeMap);
+            aStar.search(snake, pageUI.wholeMap);
           }
         }
         if (event.key === "p") {
@@ -147,22 +180,22 @@
         }
         if (event.key === "u") {
           for (let snake of snakes) {
-            gameBoard.clearScreen(snake.id);
-            gameBoard.drawMap(snake.id);
+            canvasUI.clearScreen(snake.canvas);
+            canvasUI.drawMap(snake.canvas);
             
             let pathes = aStar.search(
-              snake, manager.wholeMap, totalRowBoxes
+              snake, pageUI.wholeMap, totalRowBoxes
             );
             
             for (let path of pathes[1]) {
-              gameBoard.snakeHead({
-                x: path.row * gameBoard.boxPixel,
-                y: path.column * gameBoard.boxPixel
-              }, snake.id, "skyblue");
+              canvasUI.snakeHead({
+                x: path.row * canvasUI.boxPixel,
+                y: path.column * canvasUI.boxPixel
+              }, snake.canvas, "skyblue");
             }
             
-            gameBoard.drawFoods(snake.foods, snake.id);
-            gameBoard.character(snake.bodies, snake.id, snake.color);
+            canvasUI.drawFoods(snake.foods, snake.canvas);
+            canvasUI.character(snake.bodies, snake.canvas, snake.color);
           }
         }
       });
@@ -185,16 +218,16 @@
       if (localStorage.isPlayer === "true") {
         document.body.addEventListener("keydown", function (event) {
           if (event.key === "w") {
-            moveAllSnake(currentSnake.compass.up);
+            moveAllSnake("up");
           }
           else if (event.key === "s") {
-            moveAllSnake(currentSnake.compass.down);
+            moveAllSnake("down");
           }
           else if (event.key === "d") {
-            moveAllSnake(currentSnake.compass.right);
+            moveAllSnake("right");
           }
           else if (event.key === "a") {
-            moveAllSnake(currentSnake.compass.left);
+            moveAllSnake("left");
           }
         });
       }

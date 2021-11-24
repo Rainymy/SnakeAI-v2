@@ -1,4 +1,62 @@
-function snakeObjects(boxSize, totalBoxes, canvas, id) {
+function snakeObjects(boxSize, totalBoxes, canvas) {
+  this.init = (input, hiddens, output) => {
+    let inputNodes = input?.nodeCount ?? 24;
+    let hiddenNodes = 18;
+    let outputNodes = output?.nodeCount ?? 4;
+    
+    this.model = {
+      inputLayer: {
+        nodeCount: inputNodes,
+        values:    input?.values  ?? this.genFilledArray(inputNodes, 2, 2),
+        weights:   input?.weights ?? this.genFilledArray(inputNodes, 0.25, 0),
+        baises:    input?.baises  ?? this.genFilledArray(inputNodes, 0.25, 0)
+      },
+      hiddenLayers: [/*
+        {
+          nodeCount: 18,
+          weights: [],
+          baises: []
+        },
+        {
+          nodeCount: 18,
+          weights: [],
+          baises: []
+        }
+      */],
+      outputNodes: {
+        nodeCount: outputNodes
+      }
+    }
+    
+    if (!hiddens?.length) {
+      this.model.hiddenLayers.push({
+        nodeCount: hiddenNodes,
+        weights: this.genFilledArray(hiddenNodes, 0.25, 0),
+        baises:  this.genFilledArray(hiddenNodes, 0.25, 0)
+      });
+    }
+    
+    for (let hidden of hiddens ?? []) {
+      let temp = hidden?.nodeCount ?? hiddenNodes;
+      this.model.hiddenLayers.push({
+        nodeCount: temp,
+        weights:   hidden?.weights   ?? this.genFilledArray(temp, 0.25, 0),
+        baises:    hidden?.baises    ?? this.genFilledArray(temp, 0.25, 0)
+      });
+    }
+    
+    for (let keys in this.model) {
+      console.log(keys, this.model[keys]);
+    }
+    
+    return this.model;
+  }
+  this.genFilledArray = function (quantity, max, min) {
+    return Array.from({ length: quantity }).map(function (v) {
+      return Math.round(Math.random() * 100 * (max - min)) / 100 + min;
+    })
+  }
+  /*------------------------- Game loop -------------------------*/
   this.startGame = (framesToRun, isPlayer) => {
     // console.log(`%cGame started for ${this.color}`, `color: ${this.color}`);
     this.endFrame = framesToRun ?? this.endFrame;
@@ -21,7 +79,7 @@ function snakeObjects(boxSize, totalBoxes, canvas, id) {
       this.frames++;
       this.remainingMoves--;
       this.previousTimeStamp = timestamp - (elapsed % this.fpsInterval);
-      window.requestAnimationFrame(() => update(this.id));
+      window.requestAnimationFrame(() => update(this));
     }
     
     if (this.startFrame <= this.endFrame) {
@@ -36,32 +94,26 @@ function snakeObjects(boxSize, totalBoxes, canvas, id) {
     // console.log("%cGame ended", `color: ${this.color}`);
     return window.cancelAnimationFrame(this.currentGameLoopID); 
   }
-  this.on = async (inputEvent, callback) => {
-    if (!callback && typeof callback !== "function") {
-      return console.warn(new Error("Require a Callback"));
+  this.isGameEnded = function () {
+    for (let [ i, body ] of this.bodies.entries()) {
+      // if head is outside of the box 
+      if (
+          this.canvas.width  <= body.x || 0 > body.x ||
+          this.canvas.height <= body.y || 0 > body.y
+        ) {
+        return true;
+      }
+      // first element is the snake head
+      if (i === 0) { continue; }
+      // if head crashed with body part
+      if (body.x === this.bodies[0].x  && body.y === this.bodies[0].y) {
+        console.log("Suicide");
+        return true;
+      }
     }
-    let event = this.events[inputEvent.toLowerCase()];
-    if (typeof event === "function") {
-      return event(callback);
-    }
+    return false;
   }
-  this.fpsCount = function () {
-    return Math.round(1000 / (this.previousTimeStamp / this.frames) * 100) / 100;
-  }
-  this.hasMoveLeft = function () {
-    return this.remainingMoves <= 0 ? false : true;
-  }
-  this.resetRemainingMoves = function () {
-    this.remainingMoves = this.defaultRemainingMoves;
-    return;
-  }
-  this.getRandomLocation = function () {
-    let half = totalBoxes / 2;
-    let quarter = half / 2;
-    
-    let random = Math.floor(Math.random() * (totalBoxes - half) + quarter);
-    return random * boxSize;
-  }
+  /*------------------------- Movement --------------------------*/
   this.getOpposite = function (direction) {
     if (typeof direction === undefined || direction == undefined) return;
     if (direction.letter === "w") return this.compass.down;
@@ -87,9 +139,12 @@ function snakeObjects(boxSize, totalBoxes, canvas, id) {
       x: body[0].x + this.direction.x * boxSize,
       y: body[0].y + this.direction.y * boxSize
     });
-    let last = body.pop();
+    let last = [ body.pop() ];
     
-    return this.direction.x === 0 && this.direction.y === 0 ? undefined : [last];
+    if (this.direction.x === 0 && this.direction.y === 0) {
+      return;
+    }
+    return [ body[0], last , body[body.length - 1] ];
   }
   this.pressHandler = function (key) {
     let direction = this.direction;
@@ -99,6 +154,7 @@ function snakeObjects(boxSize, totalBoxes, canvas, id) {
     else if (key === "a" && direction !== "d") return this.compass.left;
     return null;
   }
+  /*------------------------- Food -----------------------------*/
   this.isEating = function () {
     for (let [ index, food ] of this.foods.entries()) {
       if (food.x === this.bodies[0].x && food.y === this.bodies[0].y) {
@@ -120,9 +176,36 @@ function snakeObjects(boxSize, totalBoxes, canvas, id) {
       this.foods.push({ x: location.x, y: location.y });
     }
   }
+  /*------------------------- General ---------------------------*/
   this.getRandomColor = function () {
     let randomNum = Math.floor(Math.random() * 16777215);
     return `#${randomNum.toString(16).padStart(6, '0')}`;
+  }
+  this.fpsCount = function () {
+    return Math.round(1000 / (this.previousTimeStamp / this.frames) * 100) / 100;
+  }
+  this.hasMoveLeft = function () {
+    return this.remainingMoves > 0;
+  }
+  this.resetRemainingMoves = function () {
+    return this.remainingMoves = this.defaultRemainingMoves;
+  }
+  this.getRandomLocation = function () {
+    let half = totalBoxes / 2;
+    let quarter = half / 2;
+    
+    let random = Math.floor(Math.random() * (totalBoxes - half) + quarter);
+    return random * boxSize;
+  }
+  /*-------------------------- Event ---------------------------*/
+  this.on = async (inputEvent, callback) => {
+    if (!callback && typeof callback !== "function") {
+      return console.warn(new Error("Require a Callback"));
+    }
+    let event = this.events[inputEvent.toLowerCase()];
+    if (typeof event === "function") {
+      return event(callback);
+    }
   }
   this.death = async (callback) => {
     return await new Promise((resolve, reject) => {
@@ -134,11 +217,21 @@ function snakeObjects(boxSize, totalBoxes, canvas, id) {
       }, this.eventResponseTime);
     });
   }
+  /*------------------------------------------------------------*/
   
   this.color = this.getRandomColor();
-  this.id = id;
+  
+  this.canvas = canvas;
+  this.id = this.canvas.id;
+  
   this.isPlayer = false;
   this.isAlive = true;
+  
+  this.points = {
+    frame: 0.5,
+    eat: 10
+  }
+  this.fitnessScore = 0;
   
   this.eventResponseTime = 200;
   this.events = {
@@ -161,7 +254,6 @@ function snakeObjects(boxSize, totalBoxes, canvas, id) {
   this.defaultRemainingMoves = totalBoxes*totalBoxes;
   this.score = 0;
   this.frames = 0;
-  this.canvas = canvas;
   this.pressQueue = [];
   this.compass = {
     up:    { x: 0,  y: -1, letter: "w" },
