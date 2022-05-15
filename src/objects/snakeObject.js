@@ -1,61 +1,4 @@
 function snakeObjects(boxSize, totalBoxes, canvas) {
-  this.init = (input, hiddens, output) => {
-    let inputNodes = input?.nodeCount ?? 24;
-    let hiddenNodes = 18;
-    let outputNodes = output?.nodeCount ?? 4;
-    
-    this.model = {
-      inputLayer: {
-        nodeCount: inputNodes,
-        values:    input?.values  ?? this.genFilledArray(inputNodes, 2, 2),
-        weights:   input?.weights ?? this.genFilledArray(inputNodes, 0.25, 0),
-        baises:    input?.baises  ?? this.genFilledArray(inputNodes, 0.25, 0)
-      },
-      hiddenLayers: [/*
-        {
-          nodeCount: 18,
-          weights: [],
-          baises: []
-        },
-        {
-          nodeCount: 18,
-          weights: [],
-          baises: []
-        }
-      */],
-      outputNodes: {
-        nodeCount: outputNodes
-      }
-    }
-    
-    if (!hiddens?.length) {
-      this.model.hiddenLayers.push({
-        nodeCount: hiddenNodes,
-        weights: this.genFilledArray(hiddenNodes, 0.25, 0),
-        baises:  this.genFilledArray(hiddenNodes, 0.25, 0)
-      });
-    }
-    
-    for (let hidden of hiddens ?? []) {
-      let temp = hidden?.nodeCount ?? hiddenNodes;
-      this.model.hiddenLayers.push({
-        nodeCount: temp,
-        weights:   hidden?.weights   ?? this.genFilledArray(temp, 0.25, 0),
-        baises:    hidden?.baises    ?? this.genFilledArray(temp, 0.25, 0)
-      });
-    }
-    
-    for (let keys in this.model) {
-      console.log(keys, this.model[keys]);
-    }
-    
-    return this.model;
-  }
-  this.genFilledArray = function (quantity, max, min) {
-    return Array.from({ length: quantity }).map(function (v) {
-      return Math.round(Math.random() * 100 * (max - min)) / 100 + min;
-    })
-  }
   /*------------------------- Game loop -------------------------*/
   this.startGame = (framesToRun, isPlayer) => {
     // console.log(`%cGame started for ${this.color}`, `color: ${this.color}`);
@@ -122,7 +65,7 @@ function snakeObjects(boxSize, totalBoxes, canvas) {
     if (direction.letter === "d") return this.compass.left;
     return;
   }
-  this.getNextDirection = function () {
+  this.getNextDirection = () => {
     let direction = this.pressQueue.shift() || this.direction;
     let oppositeDirection = this.getOpposite(this.direction);
     
