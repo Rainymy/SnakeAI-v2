@@ -82,7 +82,7 @@
       
       for (let snake of snakes) {
         snake.spawnFood(manager.getRandomLocations(snake.bodies, 1));
-        // snake.init({}, [{}, {}], {});
+        snake.model = manager.init({}, [{}, {}], {});
         snake.on("death", snakeDead);
         
         window.requestAnimationFrame(() => {

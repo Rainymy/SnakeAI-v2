@@ -90,5 +90,76 @@ function Manager(boxes, canvasSize) {
     }
     return locations;
   }
+  /*------------------ AI --------------------*/
+  this.directionToArray = function () {
+    let args = [ ...arguments ];
+    console.log(args);
+    return;
+  }
+  this.updateInput = function () {
+    let args = [...arguments];
+    console.log(args);
+    return;
+  }
+  this.init = (input, hiddens, output) => {
+    let inputNodes = input?.nodeCount ?? 17;
+    let hiddenNodes = 18;
+    let outputNodes = output?.nodeCount ?? 4;
+    
+    let model = {
+      inputLayer: {
+        nodeCount: inputNodes,
+        values:    input?.values  ?? this.genFilledArray(inputNodes, 2, 2),
+        weights:   input?.weights ?? this.genFilledArray(inputNodes, 0.25, 0),
+        baises:    input?.baises  ?? this.genFilledArray(inputNodes, 0.25, 0)
+      },
+      hiddenLayers: [/*
+        {
+          nodeCount: 18,
+          weights: [],
+          baises: []
+        },
+        {
+          nodeCount: 18,
+          weights: [],
+          baises: []
+        }
+      */],
+      outputNodes: {
+        nodeCount: outputNodes
+      }
+    }
+    
+    if (!hiddens?.length) {
+      model.hiddenLayers.push({
+        nodeCount: hiddenNodes,
+        weights: this.genFilledArray(hiddenNodes, 0.25, 0),
+        baises:  this.genFilledArray(hiddenNodes, 0.25, 0)
+      });
+    }
+    
+    for (let hidden of hiddens ?? []) {
+      let temp = hidden?.nodeCount ?? hiddenNodes;
+      model.hiddenLayers.push({
+        nodeCount: temp,
+        weights:   hidden?.weights ?? this.genFilledArray(temp, 0.25, 0),
+        baises:    hidden?.baises  ?? this.genFilledArray(temp, 0.25, 0)
+      });
+    }
+    
+    // for (let keys in model) {
+    //   console.log(keys, model[keys]);
+    // }
+    
+    return {
+      model: model,
+      updateInput: this.updateInput
+    };
+  }
+  this.genFilledArray = function (quantity, max, min) {
+    return Array.from({ length: quantity }).map(function (v) {
+      return Math.round(Math.random() * 100 * (max - min)) / 100 + min;
+    });
+  }
   
 }

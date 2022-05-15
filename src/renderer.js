@@ -40,26 +40,36 @@ function update(currentSnake) {
   
   currentSnake.fitnessScore += currentSnake.points.frame;
   
-  // Distance 4(Array) * 3 = 12 input.
-  let foodDistance = manager.calculateDistance( head, [ foods[0] ] );
-  let tailDistance = manager.calculateDistance( head, [ tail ] );
-  let wallDistance = manager.calculateDistance( head, manager.borders );
-  
-  // Additional info. 1 + 4(Array) = 5
-  let size = bodies.length;
-  let direction = manager.getDirection( currentSnake.direction, compass );
-  
-  // 12 + 5 = 17 input
-  console.log("----------------------------------------");
-  console.log(foodDistance);
-  console.log(tailDistance);
-  console.log(wallDistance);
-  
-  console.log(size);
-  console.log(direction);
-  console.log("----------------------------------------");
   
   if (!currentSnake.isPlayer) {
+    
+    // Distance 4(Array) * 3 = 12 input.
+    let foodDistance = manager.calculateDistance( head, [ foods[0] ] );
+    let tailDistance = manager.calculateDistance( head, [ tail ] );
+    let wallDistance = manager.calculateDistance( head, manager.borders );
+    
+    // Additional info. 1 + 4(Array) = 5
+    let size = bodies.length;
+    let direction = manager.getDirection( currentSnake.direction, compass );
+    
+    // 12 + 5 = 17 input
+    // console.log("----------------------------------------");
+    // console.log(foodDistance);
+    // console.log(tailDistance);
+    // console.log(wallDistance);
+    // 
+    // console.log(size);
+    // console.log(direction);
+    // console.log("----------------------------------------");
+    
+    let test = manager.directionToArray(
+      foodDistance, tailDistance, wallDistance, size, direction
+    );
+    
+    // console.log(test);
+    // currentSnake.model.updateInput(test);
+    // console.log(currentSnake.model.model);
+    
     if (!currentSnake.pressQueue.length) {
       let pathes = aStar.search(currentSnake, manager.wholeMap, totalRowBoxes);
       for (let move of pathes[0]) {
